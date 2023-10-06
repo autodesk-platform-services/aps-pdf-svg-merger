@@ -1,27 +1,20 @@
 ﻿const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib
 
 async function getSignedURL(urn, derivativeurn) {
-  const options = {
-    method: 'GET',
-    headers: {
-      Authorization: 'Bearer ' + _access_token
-    },
-    credentials: 'include'
-  };
-  let res = await fetch(`https://developer.api.autodesk.com/modelderivative/v2/designdata/${urn}/manifest/${derivativeurn}/signedcookies`, options);
-  let resjson = await res.json();
-  return resjson.url;
+  let res = await fetch(`/api/models/signeds3download?urn=${urn}&derivativeUrn=${derivativeurn}`);
+  let restext = await res.text();
+  return restext;
 }
 
 async function modifyPdf() {
-  let bucketKey = atob(viewer.model.getSeedUrn()).split('/')[0].split(':')[3];
-  let objectName = atob(viewer.model.getSeedUrn()).split('/')[1];
-  let modelURN = viewer.model.getSeedUrn();
-  let pdfURN = viewer.model.getDocumentNode().children.find(n => n.data.role === 'pdf-page').data.urn;
+  let bucketKey = atob(NOP_VIEWER.model.getSeedUrn()).split('/')[0].split(':')[3];
+  let objectName = atob(NOP_VIEWER.model.getSeedUrn()).split('/')[1];
+  let modelURN = NOP_VIEWER.model.getSeedUrn();
+  let pdfURN = NOP_VIEWER.model.getDocumentNode().children.find(n => n.data.role === 'pdf-page').data.urn;
 
    let signedURL = await getSignedURL(modelURN, pdfURN);
   // Fetch an existing PDF document
-  const existingPdfBytes = await fetch('').then(res => res.arrayBuffer())
+  const existingPdfBytes = await fetch(signedURL).then(res => res.arrayBuffer())
 
   // Load a PDFDocument from the existing PDF bytes
   const pdfDoc = await PDFDocument.load(existingPdfBytes)
@@ -39,14 +32,18 @@ async function modifyPdf() {
   //Snippet to retrieve the texts
   //viewer.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[1]
 
+  let text = NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[0].children[0].innerHTML;
+  let text_x = parseFloat(NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[0].innerHTML.split('"')[1]);
+  let text_y = parseFloat(NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[0].innerHTML.split('"')[3]);
+
   // Draw a string of text diagonally across the first page
-  firstPage.drawText('This text was added with JavaScript!', {
-    x: 5,
-    y: height / 2 + 300,
+  firstPage.drawText(text, {
+    x: text_x,
+    y: text_y,
     size: 50,
     font: helveticaFont,
     color: rgb(0.95, 0.1, 0.1),
-    rotate: degrees(-45),
+    rotate: degrees(0),
   })
 
   // Serialize the PDFDocument to bytes (a Uint8Array)

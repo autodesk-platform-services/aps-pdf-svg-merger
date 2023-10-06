@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Autodesk.Forge.Client;
+using Newtonsoft.Json;
+using RestSharp;
+using static AuthController;
+using System;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -37,5 +41,12 @@ public class ModelsController : ControllerBase
             stream.Position = 0;
             return null;
         }
+    }
+
+    [HttpGet("signeds3download")]
+    public async Task<string> SignedDownloadURL(string urn, string derivativeUrn)
+    {
+        string signedDownloadUrl = await _aps.GetSignedDownloadUrl(urn, derivativeUrn);
+        return signedDownloadUrl;
     }
 }
