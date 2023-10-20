@@ -7,8 +7,6 @@ async function getSignedURL(urn, derivativeurn) {
 }
 
 async function modifyPdf() {
-  let bucketKey = atob(NOP_VIEWER.model.getSeedUrn()).split('/')[0].split(':')[3];
-  let objectName = atob(NOP_VIEWER.model.getSeedUrn()).split('/')[1];
   let modelURN = NOP_VIEWER.model.getSeedUrn();
   let pdfURN = NOP_VIEWER.model.getDocumentNode().children.find(n => n.data.role === 'pdf-page').data.urn;
 
@@ -32,12 +30,10 @@ async function modifyPdf() {
   //Snippet to retrieve the texts
   //viewer.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[1]
 
+  //NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsGui').setStylesUi(Autodesk.Viewing.Extensions.Markups.Core.EditModeText)
+  
   //example: 'somestring'
   let text = NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[0].children[0].innerHTML;
-  //example: 32.850948
-  let text_x = parseFloat(NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[0].innerHTML.split('"')[1]);
-  //example: 15.982348
-  let text_y = parseFloat(NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[0].innerHTML.split('"')[3]);
   //example: '31.813357819461174'
   let fontSize = parseFloat(NOP_VIEWER.getExtension('Autodesk.Viewing.MarkupsCore').svg.getElementsByTagName('text')[0].getAttribute('font-size'));
   //example: 'rgba(255,0,0,1)'
