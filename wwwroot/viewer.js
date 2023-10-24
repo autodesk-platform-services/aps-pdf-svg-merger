@@ -23,6 +23,7 @@ export function initViewer(container) {
       const viewer = new Autodesk.Viewing.GuiViewer3D(container, config);
       viewer.start();
       viewer.setTheme('light-theme');
+      globalViewer = viewer;
       resolve(viewer);
     });
   });
