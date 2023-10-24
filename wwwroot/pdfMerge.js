@@ -1,7 +1,7 @@
 ﻿const { degrees, PDFDocument, rgb, StandardFonts } = PDFLib
 var globalViewer;
 
-async function getSignedURL(urn, derivativeurn) {
+async function getBase64StringPDF(urn, derivativeurn) {
   let res = await fetch(`/api/models/signeds3download?urn=${urn}&derivativeUrn=${derivativeurn}`);
   let restext = await res.text();
   return restext;
@@ -12,12 +12,10 @@ async function attachTextsToPDF(){
   let pdfURN = globalViewer.model.getDocumentNode().children.find(n => n.data.role === 'pdf-page').data.urn;
 
   //Get the signedURL to download the PDF document
-  const signedURL = await getSignedURL(modelURN, pdfURN);
-  // Fetch the PDF document
-  const existingPdfBytes = await fetch(signedURL).then(res => res.arrayBuffer());
+  const base64PDFString = await getBase64StringPDF(modelURN, pdfURN);
 
   // Load a PDFDocument from the existing PDF bytes
-  const pdfDoc = await PDFDocument.load(existingPdfBytes)
+  const pdfDoc = await PDFDocument.load(base64PDFString)
 
   // Embed the Helvetica font
   const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica)

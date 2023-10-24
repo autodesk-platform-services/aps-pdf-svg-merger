@@ -38,7 +38,7 @@ public partial class APS
         return new TranslationStatus((string)json["status"], (string)json["progress"], messages);
     }
 
-    public async Task<string> GetSignedDownloadUrl(string urn, string derivativeUrn)
+    public async Task<byte[]> GetByteArrayPDF(string urn, string derivativeUrn)
     {
         var restSharpClient = new RestClient("https://developer.api.autodesk.com");
 
@@ -68,6 +68,9 @@ public partial class APS
         var result = JsonConvert.DeserializeObject<dynamic>(response.Content);
         var downloadURL = $"{result.url}?Key-Pair-Id={cloudFrontKeyPairId}&Signature={cloudFrontSignature}&Policy={cloudFrontPolicy}";
 
-        return downloadURL;
+        RestClient client = new RestClient(downloadURL);
+        RestRequest downloadRequest = new RestRequest(downloadURL, Method.Get);
+        byte[] pdfByteArray = client.DownloadData(downloadRequest);
+        return pdfByteArray;
     }
 }

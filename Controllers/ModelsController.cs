@@ -46,7 +46,8 @@ public class ModelsController : ControllerBase
     [HttpGet("signeds3download")]
     public async Task<string> SignedDownloadURL(string urn, string derivativeUrn)
     {
-        string signedDownloadUrl = await _aps.GetSignedDownloadUrl(urn, derivativeUrn);
-        return signedDownloadUrl;
+        byte[] pdfByteArray = await _aps.GetByteArrayPDF(urn, derivativeUrn);
+        string base64PDFString = Convert.ToBase64String(pdfByteArray);
+        return base64PDFString;
     }
 }
