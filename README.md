@@ -2,7 +2,7 @@
 
 This sample shows a way to add SVGs on top of your PDF in Viewer and download the resulting file.
 
-### DEMO:
+### DEMO: https://aps-pdf-svg-merger.autodesk.io
 
 ### Introduction
 
