@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Autodesk.Forge;
-using Autodesk.Forge.Model;
+﻿using Autodesk.ModelDerivative;
 using Newtonsoft.Json;
 using RestSharp;
-using static AuthController;
-using static ModelsController;
 
 public record TranslationStatus(string Status, string Progress, IEnumerable<string>? Messages);
 
@@ -20,22 +14,26 @@ public partial class APS
 
     public async Task<TranslationStatus> GetTranslationStatus(string urn)
     {
-        var token = await GetInternalToken();
-        var api = new DerivativesApi();
-        api.Configuration.AccessToken = token.AccessToken;
-        var json = (await api.GetManifestAsync(urn)).ToJson();
-        var messages = new List<string>();
-        foreach (var message in json.SelectTokens("$.derivatives[*].messages[?(@.type == 'error')].message"))
+        var auth = await GetInternalToken();
+        var modelDerivativeClient = new ModelDerivativeClient(_sdkManager);
+        try
         {
-            if (message.Type == Newtonsoft.Json.Linq.JTokenType.String)
-                messages.Add((string)message);
+            var manifest = await modelDerivativeClient.GetManifestAsync(urn, accessToken: auth.AccessToken);
+            var messages = new List<string>();
+            // TODO: collect messages from manifest
+            return new TranslationStatus(manifest.Status, manifest.Progress, messages);
         }
-        foreach (var message in json.SelectTokens("$.derivatives[*].children[*].messages[?(@.type == 'error')].message"))
+        catch (ModelDerivativeApiException ex)
         {
-            if (message.Type == Newtonsoft.Json.Linq.JTokenType.String)
-                messages.Add((string)message);
+            if (ex.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return new TranslationStatus("n/a", "", null);
+            }
+            else
+            {
+                throw;
+            }
         }
-        return new TranslationStatus((string)json["status"], (string)json["progress"], messages);
     }
 
     public async Task<byte[]> GetByteArrayPDF(string urn, string derivativeUrn)

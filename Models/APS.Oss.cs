@@ -1,27 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Autodesk.Forge;
-using Autodesk.Forge.Client;
-using Autodesk.Forge.Model;
+﻿using Autodesk.Oss;
+using Autodesk.Oss.Model;
 
 public partial class APS
 {
-
     public async Task<IEnumerable<ObjectDetails>> GetObjects()
     {
+        var auth = await GetInternalToken();
+        var ossClient = new OssClient(_sdkManager);
         const int PageSize = 64;
-        var token = await GetInternalToken();
-        var api = new ObjectsApi();
-        api.Configuration.AccessToken = token.AccessToken;
         var results = new List<ObjectDetails>();
-        var response = (await api.GetObjectsAsync(_bucket, PageSize)).ToObject<BucketObjects>();
+        var response = await ossClient.GetObjectsAsync(_bucket, PageSize, accessToken: auth.AccessToken);
         results.AddRange(response.Items);
         while (!string.IsNullOrEmpty(response.Next))
         {
             var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(response.Next).Query);
-            response = (await api.GetObjectsAsync(_bucket, PageSize, null, queryParams["startAt"])).ToObject<BucketObjects>();
+            response = await ossClient.GetObjectsAsync(_bucket, PageSize, startAt: queryParams["startAt"], accessToken: auth.AccessToken);
             results.AddRange(response.Items);
         }
         return results;
