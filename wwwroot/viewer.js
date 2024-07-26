@@ -18,7 +18,7 @@ export function initViewer(container) {
   return new Promise(function (resolve, reject) {
     Autodesk.Viewing.Initializer({ getAccessToken }, function () {
       const config = {
-        extensions: ['Autodesk.Viewing.MarkupsCore', 'Autodesk.Viewing.MarkupsGui', 'Autodesk.DocumentBrowser']
+        extensions: ['Autodesk.Viewing.MarkupsCore', 'Autodesk.Viewing.MarkupsGui', 'Autodesk.DocumentBrowser', 'LinesToolExtension']
       };
       const viewer = new Autodesk.Viewing.GuiViewer3D(container, config);
       viewer.start();
