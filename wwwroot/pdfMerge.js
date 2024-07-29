@@ -7,7 +7,7 @@ async function getBase64StringPDF(urn, derivativeurn) {
   return restext;
 }
 
-async function attachTextsToPDF(){
+async function attachTextsNLinesToPDF(){
   let modelURN = globalViewer.model.getSeedUrn();
   let pdfURN = globalViewer.model.getDocumentNode().children.find(n => n.data.role === 'pdf-page').data.urn;
 
@@ -36,11 +36,57 @@ async function attachTextsToPDF(){
     }
   }
 
+  let linesExtension = globalViewer.getExtension('LinesToolExtension');
+  for(const line of linesExtension.tool.lines){
+    addLineToPDFPage(firstPage, line, linesExtension);
+  }
+
   // Serialize the PDFDocument to bytes (a Uint8Array)
   const pdfBytes = await pdfDoc.save();
 
   // Trigger the browser to download the PDF document
   download(pdfBytes, "pdf-lib_modification_example.pdf", "application/pdf");
+}
+
+function addLineToPDFPage(pdfPage, line, linesExtension){
+  // Get the width and height of the first page
+  const { width, height } = pdfPage.getSize();
+
+  //Viewer max coordinates
+  let modelMaxX = globalViewer.model.getData().modelSpaceBBox.max.x;
+  let modelMaxY = globalViewer.model.getData().modelSpaceBBox.max.y;
+
+  //Position in Viewer coordinates
+  let firstPoint = line.firstPoint.point;
+  let secondPoint = line.secondPoint.point;
+  //ratio PDF-LIB/Viewer units
+  let ratioWidth = width / modelMaxX;
+  let ratioHeight = height / modelMaxY;
+  let relativeFirstPoint = getRelativePoint(firstPoint, ratioWidth);
+  let relativeSecondPoint = getRelativePoint(secondPoint, ratioHeight);
+  //Positioning of text in the sheet in PDF-LIB coordinates
+  const firstPointX = -(0.5*width) + relativeFirstPoint.x;
+  const firstpointY = -(0.5*height) + relativeFirstPoint.y;
+  const secondPointX = -(0.5*width) + relativeSecondPoint.x;
+  const secondPointY = -(0.5*height) + relativeSecondPoint.y;
+
+  let lineColor = linesExtension.tool.lineMaterial.color;
+
+  pdfPage.drawLine({
+    start: { x: firstPointX, y: firstpointY },
+    end: { x: secondPointX, y: secondPointY },
+    thickness: linesExtension.tool.lineThickness * ratioWidth,
+    color: rgb(lineColor.r, lineColor.g, lineColor.b),
+    opacity: 0.75,
+  })
+}
+
+function getRelativePoint(point, ratio){
+  return new THREE.Vector3(
+    point.x * ratio,
+    point.y * ratio,
+    point.z * ratio,
+  )
 }
 
 function addTextToPDFPage(textHTML, textLine, pdfPage, font){

@@ -20,6 +20,7 @@ class LinesTool extends Autodesk.Viewing.ToolInterface {
       depthWrite: false,
       blending: THREE.NoBlending
     });
+    this.lines = [];
     this.lineThickness = 0.05;
     // Hack: delete functions defined on the *instance* of a ToolInterface (we want the tool controller to call our class methods instead)
     delete this.register;
@@ -53,6 +54,7 @@ class LinesTool extends Autodesk.Viewing.ToolInterface {
       this.viewer.overlays.removeScene(LinesOverlayName);
       console.log('LinesTool deactivated.');
       this.active = false;
+      this.lines = [];
       this._reset();
     }
   }
@@ -83,6 +85,10 @@ class LinesTool extends Autodesk.Viewing.ToolInterface {
       let newPoint = this.viewer.clientToWorld(event.canvasX, event.canvasY, true)
       this.points.push(newPoint);
       if (this.points.length == 2) {
+        this.lines.push({
+          firstPoint: this.points[0],
+          secondPoint: this.points[1]
+        })
         this._update();
         this._reset();
         return true; // Stop the event from going to other tools in the stack
